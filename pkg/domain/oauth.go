@@ -1,10 +1,19 @@
-package models
+package domain
 
 import (
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 	"time"
 )
+
+type TokenMeta struct {
+	AccessTokenUUID     string
+	RefreshTokenUUID    string
+	AccessTokenExpired  int64
+	RefreshTokenExpired int64
+	AccessTokenString   string
+	RefreshTokenString  string
+}
 
 type Oauth struct {
 	ID                  uuid.UUID `gorm:"type:uuid;primaryKey"`

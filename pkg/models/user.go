@@ -1,46 +1,39 @@
 package models
 
 import (
-	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 	"time"
 )
 
+type LoginRequest struct {
+	Username string `json:"username" binding:"required" valid:"required"`
+	Password string `json:"password" binding:"required" valid:"required"`
+}
+
+type LoginResponse struct {
+	UserId       string    `json:"user_id"`
+	AccessToken  string    `json:"access_token"`
+	TokenExpired time.Time `json:"token_expired"`
+}
+
 type CreateUserRequest struct {
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirm_password"`
-	Email           string `json:"email"`
-	Phone           string `json:"phone"`
+	Username        string `json:"username" valid:"required"`
+	Password        string `json:"password" valid:"required"`
+	ConfirmPassword string `json:"confirm_password" valid:"required"`
+	Email           string `json:"email" valid:"required,email"`
+	Phone           string `json:"phone" valid:"required,numeric"`
 }
 
 type CreateUserResponse struct {
-	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
-	Email    string    `json:"email"`
-	Phone    string    `json:"phone"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
 }
 
-type User struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Username  string    `sql:"index"`
-	Password  string
-	Email     string
-	Phone     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-}
+func (cu *CreateUserRequest) IsPasswordSame() bool {
+	if cu.Password != cu.ConfirmPassword {
+		return false
+	}
 
-func (u *User) BeforeCreate(tx *gorm.DB) error {
-	u.ID = uuid.NewV4()
-	return nil
-}
-
-type IUser interface {
-	CreateUser(data *User) error
-	UpdateUser(uuid string, data *User) error
-	DeleteUser(uuid string) error
-	GetUserByUUID(uuid string) (*User, error)
-	GetAllUser() (*[]User, error)
+	return true
 }

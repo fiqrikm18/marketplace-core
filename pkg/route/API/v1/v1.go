@@ -3,6 +3,8 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+
+	AuthController "github.com/fiqrikm18/marketplace/core_services/pkg/controllers/auth"
 )
 
 func Router(v1 *gin.RouterGroup) {
@@ -11,4 +13,10 @@ func Router(v1 *gin.RouterGroup) {
 			"message": "Hello, This is the marketplace API",
 		})
 	})
+
+	// authentication
+	auth := v1.Group("/auth")
+	{
+		auth.POST("/register", AuthController.Register)
+	}
 }

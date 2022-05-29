@@ -3,12 +3,12 @@ package API
 type M map[string]interface{}
 
 type ResponseMeta struct {
-	Code    int
-	Status  string
-	Message string
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 type Response struct {
-	Meta ResponseMeta
-	Data interface{}
+	Meta ResponseMeta `json:"meta"`
+	Data interface{}  `json:"data"`
 }
