@@ -6,22 +6,11 @@ import (
 
 	"github.com/fiqrikm18/marketplace/core_services/pkg/config"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	//* loading env
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
-
-	appConfig := config.AppConfig{}
-	appConfig.SetupConfiguration()
-
 	//* configure database
-	dbConf := config.DatabaseConfig{}
-	err = dbConf.NewConnection()
+	dbConf, err := config.NewConnection()
 	if err != nil {
 		panic(err)
 	}

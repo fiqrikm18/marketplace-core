@@ -1,43 +1,43 @@
 package config
 
 import (
-	"errors"
+	"github.com/joho/godotenv"
 	"os"
 )
 
+type AppConfig struct {
+	AppVersion string
+	AppPort    string
+
+	DBHost     string
+	DBPort     string
+	DBUsername string
+	DBPassword string
+	DBName     string
+}
+
 var (
-	config *AppConfig
+	appConfig *AppConfig
 )
 
-type AppConfig struct {
-	// App Configuration
-	Version string
-	Port    string
-
-	// Postgres DB Configuration
-	DbHost     string
-	DbPort     string
-	DbName     string
-	DbUsername string
-	DbPassword string
-}
-
-func (conf *AppConfig) SetupConfiguration() {
-	conf.Version = os.Getenv("APP_VERSION")
-	conf.Port = os.Getenv("APP_PORT")
-
-	conf.DbHost = os.Getenv("DB_HOST")
-	conf.DbPort = os.Getenv("DB_PORT")
-	conf.DbName = os.Getenv("DB_NAME")
-	conf.DbUsername = os.Getenv("DB_USERNAME")
-	conf.DbPassword = os.Getenv("DB_PASSWORD")
-
-	config = conf
-}
-
-func (conf *AppConfig) GetConfiguration() (*AppConfig, error) {
-	if config == nil {
-		return nil, errors.New("configuration undefined")
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
 	}
-	return config, nil
+
+	configureEnv()
+}
+
+func configureEnv() {
+	appConfig = &AppConfig{
+		AppVersion: os.Getenv("APP_VERSION"),
+		AppPort:    os.Getenv("APP_PORT"),
+
+		DBHost:     os.Getenv("DB_HOST"),
+		DBPort:     os.Getenv("DB_PORT"),
+		DBUsername: os.Getenv("DB_USERNAME"),
+		DBPassword: os.Getenv("DB_PASSWORD"),
+		DBName:     os.Getenv("DB_NAME"),
+	}
 }
