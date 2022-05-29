@@ -18,5 +18,6 @@ func Router(v1 *gin.RouterGroup) {
 	auth := v1.Group("/auth")
 	{
 		auth.POST("/register", AuthController.Register)
+		auth.POST("/login", AuthController.Login)
 	}
 }

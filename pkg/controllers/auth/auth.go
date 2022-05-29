@@ -5,15 +5,19 @@ import (
 	"github.com/fiqrikm18/marketplace/core_services/pkg/config"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/domain"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/models"
+	API2 "github.com/fiqrikm18/marketplace/core_services/pkg/models/API"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/repositories"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/utils/API"
+	"github.com/fiqrikm18/marketplace/core_services/pkg/utils/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"regexp"
+	"time"
 )
 
 var (
-	userRepository *repositories.UserRepository
+	userRepository  *repositories.UserRepository
+	oauthRepository *repositories.OauthRepository
 )
 
 func init() {
@@ -23,10 +27,71 @@ func init() {
 	}
 
 	userRepository = repositories.NewUserRepository(dbConf.DB)
+	oauthRepository = repositories.NewOauthRepository(dbConf.DB)
 }
 
 func Login(ctx *gin.Context) {
+	var payload models.LoginRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		API.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+	}
 
+	if govalidator.IsNull(payload.Username) {
+		API.ErrorResponse(ctx, http.StatusUnprocessableEntity, "username is required")
+		return
+	}
+
+	if govalidator.IsNull(payload.Password) {
+		API.ErrorResponse(ctx, http.StatusUnprocessableEntity, "password is required")
+		return
+	}
+
+	user, err := userRepository.GetUserByUsername(payload.Username)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusNotFound, "user not registered")
+		return
+	}
+
+	if govalidator.IsNull(user.Username) {
+		API.ErrorResponse(ctx, http.StatusUnauthorized, "invalid username or password")
+		return
+	}
+
+	err = user.ValidatePassword(payload.Password)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusUnauthorized, "invalid username or password")
+		return
+	}
+
+	tokenData, err := auth.GenerateToken(user)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	token := domain.Oauth{
+		UserID:              user.ID,
+		AccessTokenUUID:     tokenData.AccessTokenUUID,
+		RefreshTokenUUID:    tokenData.RefreshTokenUUID,
+		AccessTokenExpired:  time.Unix(tokenData.AccessTokenExpired, 0),
+		RefreshTokenExpired: time.Unix(tokenData.RefreshTokenExpired, 0),
+		Expired:             false,
+	}
+
+	err = oauthRepository.Save(&token)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	ctx.SetCookie("access_token", tokenData.AccessTokenString, int(tokenData.AccessTokenExpired), "/", ctx.Request.Host, true, true)
+	ctx.SetCookie("refresh_token", tokenData.RefreshTokenString, int(tokenData.RefreshTokenExpired), "/", ctx.Request.Host, true, true)
+
+	API.SuccessResponse(ctx, http.StatusOK, "", API2.M{
+		"access_token":  tokenData.AccessTokenString,
+		"refresh_token": tokenData.RefreshTokenString,
+		"expired_at":    tokenData.AccessTokenExpired,
+	})
 }
 
 func Logout(ctx *gin.Context) {
@@ -66,13 +131,8 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	user, err := userRepository.ValidateUserExist(payload.Username, payload.Email)
-	if err != nil {
-		API.ErrorResponse(ctx, http.StatusInternalServerError, "internal server error")
-		return
-	}
-
-	if govalidator.IsNotNull(user.Email) && govalidator.IsNotNull(user.Username) {
+	user, _ := userRepository.GetUserByUsername(payload.Username)
+	if user != nil && govalidator.IsNotNull(user.Email) && govalidator.IsNotNull(user.Username) {
 		API.ErrorResponse(ctx, http.StatusBadRequest, "user already registered")
 		return
 	}

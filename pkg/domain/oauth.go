@@ -19,8 +19,8 @@ type Oauth struct {
 	ID                  uuid.UUID `gorm:"type:uuid;primaryKey"`
 	UserID              uuid.UUID
 	User                User
-	AccessToken         string
-	RefreshToken        string
+	AccessTokenUUID     string
+	RefreshTokenUUID    string
 	AccessTokenExpired  time.Time
 	RefreshTokenExpired time.Time
 	Expired             bool

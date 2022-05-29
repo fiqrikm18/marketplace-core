@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rsa"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/domain"
+	. "github.com/fiqrikm18/marketplace/core_services/pkg/models/API"
 	"github.com/golang-jwt/jwt/v4"
 	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
@@ -10,20 +11,14 @@ import (
 )
 
 const (
-	privateKeys = "certs/cert"
-	publicKeys  = "certs/cert.pub"
+	privateKeys = "certs/app.rsa"
+	publicKeys  = "certs/app.rsa.pub"
 )
 
 var (
 	verifyKey *rsa.PublicKey
 	signKey   *rsa.PrivateKey
 )
-
-type Claims struct {
-	TokenUUID string
-	UserID    string
-	Username  string
-}
 
 func init() {
 	signBytes, err := ioutil.ReadFile(privateKeys)
@@ -54,23 +49,23 @@ func GenerateToken(data *domain.User) (*domain.TokenMeta, error) {
 	refreshTokenUUID := uuid.NewV4().String()
 	refreshExpired := time.Now().Add(time.Hour * 24 * 37).Unix()
 
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"iss": "marketplace_core",
-		"exp": accessExpired,
-		"data": Claims{
-			TokenUUID: accessTokenUUID,
-			UserID:    data.ID.String(),
-			Username:  data.Username,
+	accessToken := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), Claims{
+		TokenUUID: accessTokenUUID,
+		UserID:    data.ID.String(),
+		Username:  data.Username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: accessExpired,
+			Issuer:    "marketplace_core",
 		},
 	})
 
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"iss": "marketplace_core",
-		"exp": refreshExpired,
-		"data": Claims{
-			TokenUUID: refreshTokenUUID,
-			UserID:    data.ID.String(),
-			Username:  data.Username,
+	refreshToken := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), Claims{
+		TokenUUID: refreshTokenUUID,
+		UserID:    data.ID.String(),
+		Username:  data.Username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: refreshExpired,
+			Issuer:    "marketplace_core",
 		},
 	})
 

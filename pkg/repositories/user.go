@@ -57,13 +57,9 @@ func (repo *UserRepository) GetUserByUUID(uuid string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (repo *UserRepository) GetAllUser() (*[]domain.User, error) {
-	return nil, nil
-}
-
-func (repo *UserRepository) ValidateUserExist(username, email string) (*domain.User, error) {
+func (repo *UserRepository) GetUserByUsername(username string) (*domain.User, error) {
 	var user domain.User
-	trx := repo.db.Where("username = ? AND email = ?", username, email).First(&user)
+	trx := repo.db.Where("username = ?", username).First(&user)
 	if trx.Error != nil {
 		return nil, trx.Error
 	}
@@ -73,4 +69,22 @@ func (repo *UserRepository) ValidateUserExist(username, email string) (*domain.U
 	}
 
 	return &user, nil
+}
+
+func (repo *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
+	var user domain.User
+	trx := repo.db.Where("email = ?", email).First(&user)
+	if trx.Error != nil {
+		return nil, trx.Error
+	}
+
+	if user.ID.String() == "" {
+		return nil, errors.New("user not found")
+	}
+
+	return &user, nil
+}
+
+func (repo *UserRepository) GetAllUser() (*[]domain.User, error) {
+	return nil, nil
 }
