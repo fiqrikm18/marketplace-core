@@ -37,12 +37,12 @@ func (repo *OauthRepository) Save(data *domain.Oauth) error {
 
 func (repo *OauthRepository) Get(uuid string, tokenType int) (*domain.Oauth, error) {
 	var oauth domain.Oauth
-	if tokenType == _type.ACCESS_TOKEN {
+	if tokenType == _type.AccessToken {
 		tx := repo.DB.Where("access_token_uuid=?", uuid).Order("created_at desc").First(&oauth)
 		if tx.Error != nil {
 			return nil, tx.Error
 		}
-	} else if tokenType == _type.REFRESH_TOKEN {
+	} else if tokenType == _type.RefreshToken {
 		tx := repo.DB.Where("refresh_token_uuid=?", uuid).Order("created_at desc").First(&oauth)
 		if tx.Error != nil {
 			return nil, tx.Error

@@ -37,7 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenValidate := auth.CheckTokenExpired(time.Unix(tokenClaims.StandardClaims.ExpiresAt, 0))
-		if tokenValidate == TokenStatus.TOKEN_STATUS_EXPIRED {
+		if tokenValidate == TokenStatus.TokenStatusExpired {
 			API.ErrorResponse(context, http.StatusUnauthorized, "token expired")
 			return
 		}

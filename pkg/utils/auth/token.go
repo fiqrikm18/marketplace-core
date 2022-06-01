@@ -108,8 +108,8 @@ func ParseToken(tokenString string) (*Claims, error) {
 
 func CheckTokenExpired(expiredTime time.Time) int {
 	if time.Now().Before(expiredTime) {
-		return TokenStatus.TOKEN_STATUS_VALID
+		return TokenStatus.TokenStatusValid
 	} else {
-		return TokenStatus.TOKEN_STATUS_EXPIRED
+		return TokenStatus.TokenStatusExpired
 	}
 }

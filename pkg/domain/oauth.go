@@ -37,14 +37,14 @@ func (u *Oauth) BeforeCreate(tx *gorm.DB) error {
 
 func (u *Oauth) CheckExpiredTime() int {
 	if u.Expired {
-		return TokenStatus.TOKEN_STATUS_EXPIRED
+		return TokenStatus.TokenStatusExpired
 	}
 
 	remain := time.Unix(u.AccessTokenExpired.Unix(), 0).Sub(time.Now())
 
 	if remain > 0 {
-		return TokenStatus.TOKEN_STATUS_EXPIRED
+		return TokenStatus.TokenStatusExpired
 	}
 
-	return TokenStatus.TOKEN_STATUS_EXPIRED
+	return TokenStatus.TokenStatusExpired
 }

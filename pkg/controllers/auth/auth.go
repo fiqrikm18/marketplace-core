@@ -96,7 +96,7 @@ func Logout(ctx *gin.Context) {
 		API.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 	}
 
-	token, err := oauthRepository.Get(tokenClaims.TokenUUID, _type.ACCESS_TOKEN)
+	token, err := oauthRepository.Get(tokenClaims.TokenUUID, _type.AccessToken)
 	if err != nil {
 		API.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
 	}
