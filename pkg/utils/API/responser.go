@@ -28,6 +28,8 @@ func ErrorResponse(ctx *gin.Context, statusCode int, message string) {
 	}
 
 	ctx.JSON(statusCode, response)
+	ctx.Abort()
+	return
 }
 
 func PaginateResponse() {

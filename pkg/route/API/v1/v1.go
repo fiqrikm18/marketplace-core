@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/fiqrikm18/marketplace/core_services/pkg/middlewares"
 	"github.com/gin-gonic/gin"
 	"net/http"
 
@@ -21,6 +22,6 @@ func Router(v1 *gin.RouterGroup) {
 		auth.POST("/login", AuthController.Login)
 
 		// TODO: add middleware
-		auth.GET("/logout", AuthController.Logout)
+		auth.GET("/logout", middlewares.AuthMiddleware(), AuthController.Logout)
 	}
 }
