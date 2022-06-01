@@ -3,6 +3,7 @@ package repositories
 import (
 	"errors"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/domain"
+	"github.com/fiqrikm18/marketplace/core_services/pkg/types/token/type"
 	"gorm.io/gorm"
 )
 
@@ -11,9 +12,10 @@ type OauthRepository struct {
 }
 
 type IOAuthRepository interface {
-	Save(data *domain.TokenMeta) error
 	Get(uuid string, tokenType int) (*domain.Oauth, error)
-	SetStatus(uuid string, status bool) error
+	Save(data *domain.Oauth) error
+	Revoke(uuid string) error
+	RevokeAll(userID string) error
 }
 
 func NewOauthRepository(db *gorm.DB) *OauthRepository {
@@ -34,9 +36,38 @@ func (repo *OauthRepository) Save(data *domain.Oauth) error {
 }
 
 func (repo *OauthRepository) Get(uuid string, tokenType int) (*domain.Oauth, error) {
-	return nil, nil
+	var oauth domain.Oauth
+	if tokenType == _type.ACCESS_TOKEN {
+		tx := repo.DB.Where("access_token_uuid=?", uuid).Order("created_at desc").First(&oauth)
+		if tx.Error != nil {
+			return nil, tx.Error
+		}
+	} else if tokenType == _type.REFRESH_TOKEN {
+		tx := repo.DB.Where("refresh_token_uuid=?", uuid).Order("created_at desc").First(&oauth)
+		if tx.Error != nil {
+			return nil, tx.Error
+		}
+	} else {
+		return nil, errors.New("invalid token type")
+	}
+
+	return &oauth, nil
 }
 
-func (repo *OauthRepository) SetStatus(uuid string, status bool) error {
+func (repo *OauthRepository) Revoke(uuid string) error {
+	tx := repo.DB.Model(&domain.Oauth{}).Where("access_token_uuid = ?", uuid).Update("expired", true)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
+}
+
+func (repo *OauthRepository) RevokeAll(userID string) error {
+	tx := repo.DB.Model(&domain.Oauth{}).Where("user_id = ?", userID).Update("expired", true)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
 	return nil
 }

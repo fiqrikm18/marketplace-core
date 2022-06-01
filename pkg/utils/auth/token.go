@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/domain"
 	. "github.com/fiqrikm18/marketplace/core_services/pkg/models/API"
+	TokenStatus "github.com/fiqrikm18/marketplace/core_services/pkg/types/token/status"
 	"github.com/golang-jwt/jwt/v4"
 	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
@@ -87,4 +88,28 @@ func GenerateToken(data *domain.User) (*domain.TokenMeta, error) {
 		RefreshTokenString:  refreshTokenString,
 		RefreshTokenExpired: refreshExpired,
 	}, nil
+}
+
+func ParseToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if err := token.Claims.Valid(); err != nil {
+			return nil, err
+		}
+
+		return verifyKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return token.Claims.(*Claims), nil
+}
+
+func CheckTokenExpired(expiredTime time.Time) int {
+	if time.Now().Before(expiredTime) {
+		return TokenStatus.TOKEN_STATUS_VALID
+	} else {
+		return TokenStatus.TOKEN_STATUS_EXPIRED
+	}
 }

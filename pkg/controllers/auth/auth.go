@@ -7,11 +7,14 @@ import (
 	"github.com/fiqrikm18/marketplace/core_services/pkg/models"
 	API2 "github.com/fiqrikm18/marketplace/core_services/pkg/models/API"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/repositories"
+	TokenStatus "github.com/fiqrikm18/marketplace/core_services/pkg/types/token/status"
+	TokenType "github.com/fiqrikm18/marketplace/core_services/pkg/types/token/type"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/utils/API"
 	"github.com/fiqrikm18/marketplace/core_services/pkg/utils/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -95,7 +98,37 @@ func Login(ctx *gin.Context) {
 }
 
 func Logout(ctx *gin.Context) {
+	tokenString := strings.Split(ctx.Request.Header["Authorization"][0], " ")[1]
+	if govalidator.IsEmail(tokenString) {
+		API.ErrorResponse(ctx, http.StatusUnauthorized, "")
+		return
+	}
 
+	tokenClaims, err := auth.ParseToken(tokenString)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	token, err := oauthRepository.Get(tokenClaims.TokenUUID, TokenType.ACCESS_TOKEN)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	tokenStatus := auth.CheckTokenExpired(token.AccessTokenExpired)
+	if tokenStatus == TokenStatus.TOKEN_STATUS_EXPIRED {
+		API.ErrorResponse(ctx, http.StatusUnauthorized, "token expired")
+		return
+	}
+
+	err = oauthRepository.Revoke(token.AccessTokenUUID)
+	if err != nil {
+		API.ErrorResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	API.SuccessResponse(ctx, http.StatusOK, "logout success", nil)
 }
 
 func Register(ctx *gin.Context) {

@@ -19,5 +19,8 @@ func Router(v1 *gin.RouterGroup) {
 	{
 		auth.POST("/register", AuthController.Register)
 		auth.POST("/login", AuthController.Login)
+
+		// TODO: add middleware
+		auth.GET("/logout", AuthController.Logout)
 	}
 }

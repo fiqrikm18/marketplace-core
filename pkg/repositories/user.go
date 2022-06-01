@@ -16,7 +16,8 @@ type IUserRepository interface {
 	DeleteUser(uuid string) error
 	GetUserByUUID(uuid string) (*domain.User, error)
 	GetAllUser() (*[]domain.User, error)
-	ValidateUserExist(username, email string) (*domain.User, error)
+	GetUserByUsername(username string) (*domain.User, error)
+	GetUserByEmail(email string) (*domain.User, error)
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
