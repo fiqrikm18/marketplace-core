@@ -1,0 +1,12 @@
+{
+  "app_name": "marketplace_core",
+  "app_version": "0.0.1",
+  "app_port": "8080",
+  "app_environment": "development",
+  "base_url": "http://localhost:8080",
+  "db_host": "127.0.0.1",
+  "db_port": "5432",
+  "db_username": "postgres",
+  "db_password": "postgres",
+  "db_name": "marketplace_db"
+}
